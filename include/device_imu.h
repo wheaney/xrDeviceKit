@@ -58,29 +58,6 @@ enum device_imu_error_t {
 	DEVICE_IMU_ERROR_UNKNOWN = 15,
 };
 
-struct __attribute__((__packed__)) device_imu_packet_t {
-	uint8_t signature [2];
-	uint8_t temperature [2];
-	uint64_t timestamp;
-	uint8_t angular_multiplier [2];
-	uint8_t angular_divisor [4];
-	uint8_t angular_velocity_x [3];
-	uint8_t angular_velocity_y [3];
-	uint8_t angular_velocity_z [3];
-	uint8_t acceleration_multiplier [2];
-	uint8_t acceleration_divisor [4];
-	uint8_t acceleration_x [3];
-	uint8_t acceleration_y [3];
-	uint8_t acceleration_z [3];
-	uint8_t magnetic_multiplier [2];
-	uint8_t magnetic_divisor [4];
-	uint8_t magnetic_x [2];
-	uint8_t magnetic_y [2];
-	uint8_t magnetic_z [2];
-	uint32_t checksum;
-	uint8_t _padding [6];
-};
-
 enum device_imu_event_t {
 	DEVICE_IMU_EVENT_UNKNOWN = 0,
 	DEVICE_IMU_EVENT_INIT    = 1,
@@ -127,7 +104,6 @@ struct device_imu_size_t {
 };
 
 typedef enum device_imu_error_t device_imu_error_type;
-typedef struct device_imu_packet_t device_imu_packet_type;
 typedef enum device_imu_event_t device_imu_event_type;
 
 typedef struct device_imu_ahrs_t device_imu_ahrs_type;

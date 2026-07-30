@@ -533,75 +533,6 @@ static void device_imu_callback(device_imu_type* device,
 	device->callback(timestamp, event, device->ahrs);
 }
 
-static int32_t pack32bit_signed(const uint8_t* data) {
-	uint32_t unsigned_value = (data[0]) | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-	return ((int32_t) unsigned_value);
-}
-
-static int32_t pack24bit_signed(const uint8_t* data) {
-	uint32_t unsigned_value = (data[0]) | (data[1] << 8) | (data[2] << 16);
-	if ((data[2] & 0x80) != 0) unsigned_value |= (0xFF << 24);
-	return ((int32_t) unsigned_value);
-}
-
-static int16_t pack16bit_signed(const uint8_t* data) {
-	uint16_t unsigned_value = (data[1] << 8) | (data[0]);
-	return (int16_t) unsigned_value;
-}
-
-static int32_t pack32bit_signed_swap(const uint8_t* data) {
-	uint32_t unsigned_value = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | (data[3]);
-	return ((int32_t) unsigned_value);
-}
-
-static int16_t pack16bit_signed_swap(const uint8_t* data) {
-	uint16_t unsigned_value = (data[0] << 8) | (data[1]);
-	return (int16_t) unsigned_value;
-}
-
-static int16_t pack16bit_signed_bizarre(const uint8_t* data) {
-	uint16_t unsigned_value = (data[0]) | ((data[1] ^ 0x80) << 8);
-	return (int16_t) unsigned_value;
-}
-
-static void readIMU_from_packet(const device_imu_packet_type* packet,
-								FusionVector* gyroscope,
-								FusionVector* accelerometer,
-								FusionVector* magnetometer) {
-	int32_t vel_m = pack16bit_signed(packet->angular_multiplier);
-	int32_t vel_d = pack32bit_signed(packet->angular_divisor);
-	
-	int32_t vel_x = pack24bit_signed(packet->angular_velocity_x);
-	int32_t vel_y = pack24bit_signed(packet->angular_velocity_y);
-	int32_t vel_z = pack24bit_signed(packet->angular_velocity_z);
-	
-	gyroscope->axis.x = (float) vel_x * (float) vel_m / (float) vel_d;
-	gyroscope->axis.y = (float) vel_y * (float) vel_m / (float) vel_d;
-	gyroscope->axis.z = (float) vel_z * (float) vel_m / (float) vel_d;
-	
-	int32_t accel_m = pack16bit_signed(packet->acceleration_multiplier);
-	int32_t accel_d = pack32bit_signed(packet->acceleration_divisor);
-	
-	int32_t accel_x = pack24bit_signed(packet->acceleration_x);
-	int32_t accel_y = pack24bit_signed(packet->acceleration_y);
-	int32_t accel_z = pack24bit_signed(packet->acceleration_z);
-	
-	accelerometer->axis.x = (float) accel_x * (float) accel_m / (float) accel_d;
-	accelerometer->axis.y = (float) accel_y * (float) accel_m / (float) accel_d;
-	accelerometer->axis.z = (float) accel_z * (float) accel_m / (float) accel_d;
-	
-	int32_t magnet_m = pack16bit_signed_swap(packet->magnetic_multiplier);
-	int32_t magnet_d = pack32bit_signed_swap(packet->magnetic_divisor);
-	
-	int16_t magnet_x = pack16bit_signed_bizarre(packet->magnetic_x);
-	int16_t magnet_y = pack16bit_signed_bizarre(packet->magnetic_y);
-	int16_t magnet_z = pack16bit_signed_bizarre(packet->magnetic_z);
-	
-	magnetometer->axis.x = (float) magnet_x * (float) magnet_m / (float) magnet_d;
-	magnetometer->axis.y = (float) magnet_y * (float) magnet_m / (float) magnet_d;
-	magnetometer->axis.z = (float) magnet_z * (float) magnet_m / (float) magnet_d;
-}
-
 #define min(x, y) ((x) < (y)? (x) : (y))
 #define max(x, y) ((x) > (y)? (x) : (y))
 
@@ -772,15 +703,7 @@ device_imu_error_type device_imu_calibrate(device_imu_type* device, uint32_t ite
 		device_imu_error("No calibration allocated");
 		return DEVICE_IMU_ERROR_NO_ALLOCATION;
 	}
-	
-	if (sizeof(device_imu_packet_type) > device->max_payload_size) {
-		device_imu_error("Not proper size");
-		return DEVICE_IMU_ERROR_WRONG_SIZE;
-	}
-	
-	device_imu_packet_type packet;
-	int transferred;
-	
+
 	bool initialized = false;
 	
 	FusionVector cal_gyroscope;

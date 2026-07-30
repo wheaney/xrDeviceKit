@@ -90,7 +90,7 @@ device_mcu_error_type device_mcu_read(device_mcu_type* device, int timeout) {
 
 	int n = device->protocol->read_next(device, &event, timeout);
 	if (n < 0) {
-		return (device_mcu_error_type) (-n);
+		return DEVICE_MCU_ERROR_UNPLUGGED;
 	}
 
 	if (n == 0) {
