@@ -312,14 +312,12 @@ device_imu_error_type device_imu_open(device_imu_type* device, device_imu_event_
 		device_imu_error("Failed sending payload to start imu data stream");
 		return DEVICE_IMU_ERROR_PAYLOAD_FAILED;
 	}
-
-	const uint32_t SAMPLE_RATE = 1000;
 	
 	device->offset = malloc(sizeof(FusionOffset));
 	device->ahrs = malloc(sizeof(FusionAhrs));
 	
 	if (device->offset) {
-		FusionOffsetInitialise((FusionOffset*) device->offset, SAMPLE_RATE);
+		FusionOffsetInitialise((FusionOffset*) device->offset, device->sample_rate);
 	}
 
 	FusionAhrsInitialise((FusionAhrs*) device->ahrs);
@@ -329,7 +327,7 @@ device_imu_error_type device_imu_open(device_imu_type* device, device_imu_event_
 			.gain = 0.5f,
 			.accelerationRejection = 10.0f,
 			.magneticRejection = 20.0f,
-			.recoveryTriggerPeriod = 5 * SAMPLE_RATE, /* 5 seconds */
+			.recoveryTriggerPeriod = 5 * device->sample_rate, /* 5 seconds */
 	};
 	
 	FusionAhrsSetSettings((FusionAhrs*) device->ahrs, &settings);

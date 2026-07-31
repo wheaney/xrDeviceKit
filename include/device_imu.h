@@ -144,6 +144,8 @@ struct device_imu_t {
 	device_imu_event_callback callback;
 	device_imu_calibration_type* calibration;
 
+	uint32_t sample_rate;
+
 	const struct imu_protocol* protocol;
 };
 
